@@ -1,5 +1,5 @@
-import jwt, { JsonWebTokenError } from "jsonwebtoken";
-import { jwtConfig } from "../config/jwt.config";
+import jwt from "jsonwebtoken";
+import { jwtConfig } from "../config/jwt.config.js";
 
 // Access Token ( It will be short lived )
 

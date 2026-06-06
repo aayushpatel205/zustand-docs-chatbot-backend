@@ -1,8 +1,8 @@
 // repositories/user.repository.js
-import db from "../../config/db.js";
-import { createUserDocument } from "./user.model.js";
-import { encrypt, decrypt } from "../../utils/encryption.js";
-import { COLLECTIONS } from "../../config/collections.js";
+import db from "../../.././config/db.js";
+import { createUserDocument } from "../models/user.model.js";
+import { encrypt , decrypt } from "../../../utils/encryption.js";
+import { COLLECTIONS } from "../../../config/collections.js";
 import crypto from "crypto";
 
 const getUsersCollection = () => db.collection(COLLECTIONS.USERS);

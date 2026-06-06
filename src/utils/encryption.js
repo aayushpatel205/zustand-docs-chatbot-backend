@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { encryptionConfig } from "../config/jwt.config";
+import { encryptionConfig } from "../config/jwt.config.js";
 
 const ALGORITHM = "aes-256-gcm";
 const KEY = Buffer.from(encryptionConfig.key, "hex"); // 32 bytes = 64 hex chars

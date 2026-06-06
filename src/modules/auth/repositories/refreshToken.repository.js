@@ -1,6 +1,6 @@
-import db from "../../config/db.js";
-import { createRefreshTokenDocument } from "./refreshToken.model.js";
-import { COLLECTIONS } from "../../config/collections.js";
+import db from "../../.././config/db.js"
+import { createRefreshTokenDocument } from "../models/refreshToken.model.js";
+import { COLLECTIONS } from "../../.././config/collections.js";
 
 const getRefreshTokensCollection = () =>
   db.collection(COLLECTIONS.REFRESH_TOKENS);
@@ -77,7 +77,7 @@ export async function deleteRefreshToken(token) {
   await collection.deleteOne({ token });
 }
 
-// ---------- Delete All Expired (cleanup job) ----------
+// ---------- Delete All Expired (cleanup job) Setup later in cron job ----------
 
 export async function deleteExpiredTokens() {
   const collection = getRefreshTokensCollection();
