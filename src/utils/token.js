@@ -10,13 +10,19 @@ export const generateAccessToken = (payload) => {
 };
 
 export const verifyAccessToken = (token) => {
-    try {
-        return jwt.verify(token, jwtConfig.accessSecret);
-    } catch (error) {
-        throw new Error("Invalid access token");
+  try {
+    return jwt.verify(token, jwtConfig.accessSecret);
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      const err = new Error('Token expired');
+      err.code = 'TOKEN_EXPIRED';
+      throw err;
     }
+    const err = new Error('Invalid access token');
+    err.code = 'INVALID_TOKEN';
+    throw err;
+  }
 };
-
 
 // Refresh Token ( It will be long lived )
 

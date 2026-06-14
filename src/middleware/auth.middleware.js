@@ -1,24 +1,24 @@
 // middleware/auth.middleware.js
-import { verifyAccessToken } from '../utils/token.js';
-import { findUserById } from '../modules/user/repositories/user.repository.js';
+import { verifyAccessToken } from "../utils/token.js";
+import { findUserById } from "../modules/user/repositories/user.repository.js";
 
 export async function protect(req, res, next) {
   try {
     // 1. check authorization header exists
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         success: false,
-        message: 'No token provided',
+        message: "No token provided",
       });
     }
 
     // 2. extract token from "Bearer <token>"
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(" ")[1];
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'No token provided',
+        message: "No token provided",
       });
     }
 
@@ -31,41 +31,39 @@ export async function protect(req, res, next) {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'User no longer exists',
+        message: "User no longer exists",
       });
     }
 
     if (!user.isActive) {
       return res.status(403).json({
         success: false,
-        message: 'Account is deactivated',
+        message: "Account is deactivated",
       });
     }
 
     // 5. attach user to request for downstream use
     req.user = user;
     next();
-
   } catch (err) {
-    // verifyAccessToken throws these specific errors
-    if (err.name === 'TokenExpiredError') {
+    if (err.code === "TOKEN_EXPIRED") {
       return res.status(401).json({
         success: false,
-        message: 'Access token expired',
-        code: 'TOKEN_EXPIRED',  // frontend uses this code to trigger refresh
+        message: "Access token expired",
+        code: "TOKEN_EXPIRED",
       });
     }
 
-    if (err.name === 'JsonWebTokenError') {
+    if (err.code === "INVALID_TOKEN") {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token',
+        message: "Invalid token",
       });
     }
 
     return res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: "Internal server error",
     });
   }
 }

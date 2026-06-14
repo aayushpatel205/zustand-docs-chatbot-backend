@@ -37,7 +37,8 @@ export async function register(req, res) {
       success: true,
       message: "Registration successful",
       data: {
-        accessToken, // client stores this in memory
+        accessToken,
+        refreshToken, // ← add this
         user,
       },
     });
@@ -86,6 +87,7 @@ export async function login(req, res) {
       message: "Login successful",
       data: {
         accessToken,
+        refreshToken, // ← add this
         user,
       },
     });
@@ -115,8 +117,8 @@ export async function login(req, res) {
 
 export async function refresh(req, res) {
   try {
-    // read from cookie — never from body
-    const refreshToken = req.cookies.refreshToken;
+    // React Native sends in body, browsers send via cookie
+    const refreshToken = req.body.refreshToken || req.cookies.refreshToken;
 
     if (!refreshToken) {
       return res.status(401).json({
@@ -125,20 +127,30 @@ export async function refresh(req, res) {
       });
     }
 
-    const { accessToken, user } =
-      await authService.refreshAccessToken(refreshToken);
+    const {
+      accessToken,
+      refreshToken: newRefreshToken,
+      user,
+    } = await authService.refreshAccessToken(refreshToken);
+
+    // still set cookie for browser clients
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     return res.status(200).json({
       success: true,
       data: {
         accessToken,
+        refreshToken: newRefreshToken, // ← React Native needs this in body
         user,
       },
     });
   } catch (err) {
-    // clear the cookie if refresh token is invalid
     res.clearCookie("refreshToken");
-
     return res.status(401).json({
       success: false,
       message: "Session expired, please login again",
@@ -150,7 +162,7 @@ export async function refresh(req, res) {
 
 export async function logout(req, res) {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    const refreshToken = req.body.refreshToken || req.cookies.refreshToken;
 
     if (refreshToken) {
       await authService.logoutUser(refreshToken); // revoke in DB
@@ -182,6 +194,26 @@ export async function logoutAll(req, res) {
     return res.status(200).json({
       success: true,
       message: "Logged out from all devices",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+}
+
+// add this to modules/auth/auth.controller.js
+
+// ---------- Get Current User ----------
+
+export async function getMe(req, res) {
+  try {
+    return res.status(200).json({
+      success: true,
+      data: {
+        user: req.user,
+      },
     });
   } catch (err) {
     return res.status(500).json({

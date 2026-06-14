@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import authRoutes from "./src/modules/auth/auth.routes.js";
+import { apiLimiter } from './src/middleware/rateLimiter.js';
 
 dotenv.config();
 
@@ -13,12 +14,13 @@ const PORT = process.env.PORT || 3000;
 // ---------- Middleware ----------
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173', // your frontend URL
-  credentials: true,  // allows cookies to be sent cross-origin
+  origin: true,
+  credentials: true,
 }));
 
 app.use(express.json());          // parse JSON request bodies
 app.use(cookieParser());          // parse cookies — needed for refreshToken cookie
+app.use('/api', apiLimiter); 
 
 // ---------- Routes ----------
 
