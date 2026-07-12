@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import authRoutes from "./src/modules/auth/auth.routes.js";
+import chatRoutes from "./src/modules/chat/chat.routes.js";
 import { apiLimiter } from './src/middleware/rateLimiter.js';
 
 dotenv.config();
@@ -25,6 +26,7 @@ app.use('/api', apiLimiter);
 // ---------- Routes ----------
 
 app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
 
 // ---------- Health Check ----------
 
