@@ -1,5 +1,6 @@
 import { DataAPIClient } from "@datastax/astra-db-ts";
 import { GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { rewriteForSearch, contextualizeQuestion } from "./queryRewriter.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -30,10 +31,15 @@ async function getCollection() {
   return collection;
 }
 
-export async function answerQuestion(question) {
+export async function answerQuestion(question, history = []) {
   const col = await getCollection();
 
-  const vector = await embeddings.embedQuery(question);
+  const resolvedQuestion = history.length > 0
+    ? await contextualizeQuestion(question, history)
+    : question;
+
+  const searchQuery = await rewriteForSearch(resolvedQuestion);
+  const vector = await embeddings.embedQuery(searchQuery);
 
   const results = await col.find(
     {},
@@ -62,7 +68,7 @@ export async function answerQuestion(question) {
     "Always reference the source document title and section heading when citing information. " +
     "Be concise and include relevant code examples when available.";
 
-  const prompt = `Context:\n${context}\n\nQuestion: ${question}`;
+  const prompt = `Context:\n${context}\n\nQuestion: ${resolvedQuestion}`;
 
   const response = await llm.invoke([
     ["system", systemPrompt],
